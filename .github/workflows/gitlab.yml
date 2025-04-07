@@ -26,4 +26,4 @@ switch:
   stage: switch
   script:
     - kubectl config use-context $KUBE_CONTEXT
-    - kubectl patch svc $APP_NAME-service -p '{"spec": {"selector": {"env": "'$DEPLOYMENT_NAME'"}}}'
+    - kubectl patch svc $APP_NAME-service -p '{"spec": {"selector": {"env": "'$blue_green'"}}}'
