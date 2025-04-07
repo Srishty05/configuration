@@ -1,0 +1,29 @@
+stages:
+  - build
+  - deploy
+  - switch
+
+variables:
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  KUBE_CONTEXT: my-k8s-context
+  DEPLOYMENT_NAME: green  # Change to 'blue' for the next deploy
+  APP_NAME: my-app
+
+build:
+  stage: build
+  script:
+    - docker build -t registry.gitlab.com/$CI_PROJECT_PATH:$IMAGE_TAG .
+    - docker push registry.gitlab.com/$CI_PROJECT_PATH:$IMAGE_TAG
+
+deploy:
+  stage: deploy
+  script:
+    - kubectl config use-context $KUBE_CONTEXT
+    - kubectl set image deployment/$DEPLOYMENT_NAME $APP_NAME=registry.gitlab.com/$CI_PROJECT_PATH:$IMAGE_TAG
+    - kubectl rollout status deployment/$DEPLOYMENT_NAME
+
+switch:
+  stage: switch
+  script:
+    - kubectl config use-context $KUBE_CONTEXT
+    - kubectl patch svc $APP_NAME-service -p '{"spec": {"selector": {"env": "'$DEPLOYMENT_NAME'"}}}'
