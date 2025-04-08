@@ -29,7 +29,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Test
-        run: ./gradlew test
+        run: gradle build
+
 
   deploy-green:
     runs-on: ubuntu-latest
