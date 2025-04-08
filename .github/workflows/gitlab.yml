@@ -1,36 +1,25 @@
-stages:
-  - build
-  - test
-  - deploy
-  - switch
-  - cleanup
-
 build:
   stage: build
   script:
-    - ./gradlew build
-
-test:
+    - ./gradlew build  
+    test:
   stage: test
   script:
-    - ./gradlew test
-
+    - ./gradlew test  # Think: “Check for bugs”
 deploy_green:
   stage: deploy
   script:
-    - ./deploy.sh green
-
+    - ./deploy.sh green  # Think: “Put new app on standby”
 validate_green:
   stage: deploy
   script:
-    - ./health_check.sh green
-
+    - ./health_check.sh green  # Think: “Is new app healthy?”
 switch_to_green:
   stage: switch
   script:
-    - ./switch_traffic.sh green
-
+    - ./switch_traffic.sh green  # Think: “Send users to new app”
 cleanup_blue:
   stage: cleanup
   script:
-    - ./teardown.sh blue
+    - ./teardown.sh blue  # Think: “Turn off old version”
+
