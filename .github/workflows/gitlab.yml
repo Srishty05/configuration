@@ -1,25 +1,60 @@
-build:
-  stage: build
-  script:
-    - ./gradlew build  
-    test:
-  stage: test
-  script:
-    - ./gradlew test  # Think: “Check for bugs”
-deploy_green:
-  stage: deploy
-  script:
-    - ./deploy.sh green  # Think: “Put new app on standby”
-validate_green:
-  stage: deploy
-  script:
-    - ./health_check.sh green  # Think: “Is new app healthy?”
-switch_to_green:
-  stage: switch
-  script:
-    - ./switch_traffic.sh green  # Think: “Send users to new app”
-cleanup_blue:
-  stage: cleanup
-  script:
-    - ./teardown.sh blue  # Think: “Turn off old version”
+name: Blue Green Strategy
 
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build
+        run: ./gradlew build
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Test
+        run: ./gradlew test
+
+  deploy-green:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Deploy to Green
+        run: ./deploy.sh green
+
+  validate-green:
+    runs-on: ubuntu-latest
+    needs: deploy-green
+    steps:
+      - name: Health Check Green
+        run: ./health_check.sh green
+
+  switch-to-green:
+    runs-on: ubuntu-latest
+    needs: validate-green
+    steps:
+      - name: Switch Traffic to Green
+        run: ./switch_traffic.sh green
+
+  cleanup-blue:
+    runs-on: ubuntu-latest
+    needs: switch-to-green
+    steps:
+      - name: Clean Up Blue
+        run: ./teardown.sh blue
